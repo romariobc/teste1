@@ -1,6 +1,9 @@
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import authRoutes from './routes/authRoutes';
+import userRoutes from './routes/userRoutes';
+import pool from './utils/database';
 
 // Load environment variables
 dotenv.config();
@@ -14,24 +17,51 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Health check
-app.get('/health', (req: Request, res: Response) => {
-  res.status(200).json({
-    status: 'OK',
-    service: 'User Service',
-    timestamp: new Date().toISOString(),
-  });
+app.get('/health', async (req: Request, res: Response) => {
+  try {
+    // Check database connection
+    await pool.query('SELECT 1');
+
+    res.status(200).json({
+      status: 'OK',
+      service: 'User Service',
+      database: 'Connected',
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: 'ERROR',
+      service: 'User Service',
+      database: 'Disconnected',
+      timestamp: new Date().toISOString(),
+    });
+  }
 });
 
-// Placeholder routes (will be implemented in Phase 2)
+// Root endpoint
 app.get('/', (req: Request, res: Response) => {
   res.json({
     service: 'User Service',
     version: '1.0.0',
     endpoints: {
-      health: '/health',
-      register: 'POST /register (coming in Phase 2)',
-      login: 'POST /login (coming in Phase 2)',
+      health: 'GET /health',
+      register: 'POST /register',
+      login: 'POST /login',
+      profile: 'GET /profile (requires authentication)',
+      updateProfile: 'PUT /profile (requires authentication)',
     },
+  });
+});
+
+// Routes
+app.use('/', authRoutes);
+app.use('/', userRoutes);
+
+// 404 handler
+app.use((req: Request, res: Response) => {
+  res.status(404).json({
+    error: 'Not Found',
+    message: `Route ${req.method} ${req.path} not found`,
   });
 });
 
@@ -48,6 +78,14 @@ app.use((err: Error, req: Request, res: Response, next: Function) => {
 app.listen(PORT, () => {
   console.log(`🔐 User Service running on port ${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV}`);
+  console.log(`🗄️  Database: ${process.env.DATABASE_URL ? 'Configured' : 'Not configured'}`);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  console.log('SIGTERM signal received: closing HTTP server');
+  await pool.end();
+  process.exit(0);
 });
 
 export default app;
