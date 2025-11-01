@@ -1,0 +1,154 @@
+version: '3.8'
+
+services:
+  # Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: receipt-manager-db
+    environment:
+      POSTGRES_DB: receipt_manager
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d receipt_manager"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - receipt-network
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./backend/api-gateway
+      dockerfile: Dockerfile
+    container_name: receipt-manager-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - JWT_SECRET=receipt-manager-secret-key-change-in-production
+      - USER_SERVICE_URL=http://user-service:3004
+      - RECEIPT_SERVICE_URL=http://receipt-service:3001
+      - PRODUCTS_SERVICE_URL=http://products-service:3002
+      - ANALYTICS_SERVICE_URL=http://analytics-service:3003
+    depends_on:
+      user-service:
+        condition: service_started
+      receipt-service:
+        condition: service_started
+      products-service:
+        condition: service_started
+      analytics-service:
+        condition: service_started
+    networks:
+      - receipt-network
+    volumes:
+      - ./backend/api-gateway:/app
+      - /app/node_modules
+    command: npm run dev
+
+  # User Service
+  user-service:
+    build:
+      context: ./backend/services/user-service
+      dockerfile: Dockerfile
+    container_name: receipt-manager-user-service
+    ports:
+      - "3004:3004"
+    environment:
+      - NODE_ENV=development
+      - PORT=3004
+      - DATABASE_URL=postgresql://admin:admin123@postgres:5432/receipt_manager
+      - JWT_SECRET=receipt-manager-secret-key-change-in-production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - receipt-network
+    volumes:
+      - ./backend/services/user-service:/app
+      - /app/node_modules
+    command: npm run dev
+
+  # Receipt Service
+  receipt-service:
+    build:
+      context: ./backend/services/receipt-service
+      dockerfile: Dockerfile
+    container_name: receipt-manager-receipt-service
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - DATABASE_URL=postgresql://admin:admin123@postgres:5432/receipt_manager
+      - PRODUCTS_SERVICE_URL=http://products-service:3002
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - receipt-network
+    volumes:
+      - ./backend/services/receipt-service:/app
+      - /app/node_modules
+    command: npm run dev
+
+  # Products Service
+  products-service:
+    build:
+      context: ./backend/services/products-service
+      dockerfile: Dockerfile
+    container_name: receipt-manager-products-service
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=development
+      - PORT=3002
+      - DATABASE_URL=postgresql://admin:admin123@postgres:5432/receipt_manager
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - receipt-network
+    volumes:
+      - ./backend/services/products-service:/app
+      - /app/node_modules
+    command: npm run dev
+
+  # Analytics Service
+  analytics-service:
+    build:
+      context: ./backend/services/analytics-service
+      dockerfile: Dockerfile
+    container_name: receipt-manager-analytics-service
+    ports:
+      - "3003:3003"
+    environment:
+      - NODE_ENV=development
+      - PORT=3003
+      - DATABASE_URL=postgresql://admin:admin123@postgres:5432/receipt_manager
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - receipt-network
+    volumes:
+      - ./backend/services/analytics-service:/app
+      - /app/node_modules
+    command: npm run dev
+
+volumes:
+  postgres_data:
+    name: receipt-manager-postgres-data
+
+networks:
+  receipt-network:
+    name: receipt-manager-network
+    driver: bridge
