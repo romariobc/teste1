@@ -1,6 +1,8 @@
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import receiptRoutes from './routes/receiptRoutes';
+import pool from './utils/database';
 
 // Load environment variables
 dotenv.config();
@@ -14,25 +16,50 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Health check
-app.get('/health', (req: Request, res: Response) => {
-  res.status(200).json({
-    status: 'OK',
-    service: 'Receipt Service',
-    timestamp: new Date().toISOString(),
-  });
+app.get('/health', async (req: Request, res: Response) => {
+  try {
+    // Check database connection
+    await pool.query('SELECT 1');
+
+    res.status(200).json({
+      status: 'OK',
+      service: 'Receipt Service',
+      database: 'Connected',
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: 'ERROR',
+      service: 'Receipt Service',
+      database: 'Disconnected',
+      timestamp: new Date().toISOString(),
+    });
+  }
 });
 
-// Placeholder routes (will be implemented in Phase 3)
+// Root endpoint
 app.get('/', (req: Request, res: Response) => {
   res.json({
     service: 'Receipt Service',
     version: '1.0.0',
     endpoints: {
-      health: '/health',
-      upload: 'POST /upload (coming in Phase 3)',
-      list: 'GET / (coming in Phase 3)',
-      details: 'GET /:id (coming in Phase 3)',
+      health: 'GET /health',
+      upload: 'POST /upload (requires authentication)',
+      list: 'GET / (requires authentication)',
+      details: 'GET /:id (requires authentication)',
+      delete: 'DELETE /:id (requires authentication)',
     },
+  });
+});
+
+// Routes
+app.use('/', receiptRoutes);
+
+// 404 handler
+app.use((req: Request, res: Response) => {
+  res.status(404).json({
+    error: 'Not Found',
+    message: `Route ${req.method} ${req.path} not found`,
   });
 });
 
@@ -49,6 +76,14 @@ app.use((err: Error, req: Request, res: Response, next: Function) => {
 app.listen(PORT, () => {
   console.log(`🧾 Receipt Service running on port ${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV}`);
+  console.log(`🗄️  Database: ${process.env.DATABASE_URL ? 'Configured' : 'Not configured'}`);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  console.log('SIGTERM signal received: closing HTTP server');
+  await pool.end();
+  process.exit(0);
 });
 
 export default app;
