@@ -4,6 +4,10 @@ import { ProtectedRoute } from './components/ProtectedRoute'
 import Layout from './components/Layout'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import Dashboard from './pages/Dashboard'
+import AddReceipt from './pages/AddReceipt'
+import ReceiptsList from './pages/ReceiptsList'
+import ReceiptDetails from './pages/ReceiptDetails'
 
 function App() {
   return (
@@ -18,23 +22,41 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             
-            {/* Protected routes - will be implemented in next steps */}
-            <Route 
-              path="/dashboard" 
+            {/* Protected routes */}
+            <Route
+              path="/dashboard"
               element={
                 <ProtectedRoute>
-                  <DashboardPlaceholder />
+                  <Dashboard />
                 </ProtectedRoute>
-              } 
+              }
             />
             
-            <Route 
-              path="/receipts" 
+            <Route
+              path="/receipts"
               element={
                 <ProtectedRoute>
-                  <ReceiptsPlaceholder />
+                  <ReceiptsList />
                 </ProtectedRoute>
-              } 
+              }
+            />
+
+            <Route
+              path="/receipts/add"
+              element={
+                <ProtectedRoute>
+                  <AddReceipt />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/receipts/:id"
+              element={
+                <ProtectedRoute>
+                  <ReceiptDetails />
+                </ProtectedRoute>
+              }
             />
             
             <Route 
