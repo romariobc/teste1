@@ -1,6 +1,8 @@
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import pool from './utils/database';
+import analyticsRoutes from './routes/analyticsRoutes';
 
 // Load environment variables
 dotenv.config();
@@ -13,29 +15,44 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Health check
-app.get('/health', (req: Request, res: Response) => {
-  res.status(200).json({
-    status: 'OK',
-    service: 'Analytics Service',
-    timestamp: new Date().toISOString(),
-  });
+// Health check with database connection test
+app.get('/health', async (req: Request, res: Response) => {
+  try {
+    await pool.query('SELECT 1');
+    res.status(200).json({
+      status: 'OK',
+      service: 'Analytics Service',
+      database: 'Connected',
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: 'ERROR',
+      service: 'Analytics Service',
+      database: 'Disconnected',
+      timestamp: new Date().toISOString(),
+    });
+  }
 });
 
-// Placeholder routes (will be implemented in Phase 5)
+// Root endpoint
 app.get('/', (req: Request, res: Response) => {
   res.json({
     service: 'Analytics Service',
     version: '1.0.0',
     endpoints: {
-      health: '/health',
-      summary: 'GET /summary (coming in Phase 5)',
-      topProducts: 'GET /products/top (coming in Phase 5)',
-      spendingTrend: 'GET /spending-trend (coming in Phase 5)',
-      priceFluctuation: 'GET /price-fluctuation/:id (coming in Phase 5)',
+      health: 'GET /health',
+      summary: 'GET /summary',
+      topProducts: 'GET /products/top',
+      spendingTrend: 'GET /spending-trend',
+      priceFluctuation: 'GET /price-fluctuation/:productId',
+      storesCompare: 'GET /stores/compare',
     },
   });
 });
+
+// Analytics routes
+app.use('/', analyticsRoutes);
 
 // Error handler
 app.use((err: Error, req: Request, res: Response, next: Function) => {
