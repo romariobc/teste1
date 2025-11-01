@@ -8,6 +8,8 @@ import Dashboard from './pages/Dashboard'
 import AddReceipt from './pages/AddReceipt'
 import ReceiptsList from './pages/ReceiptsList'
 import ReceiptDetails from './pages/ReceiptDetails'
+import ProductsList from './pages/ProductsList'
+import Analytics from './pages/Analytics'
 
 function App() {
   return (
@@ -59,102 +61,27 @@ function App() {
               }
             />
             
-            <Route 
-              path="/products" 
+            <Route
+              path="/products"
               element={
                 <ProtectedRoute>
-                  <ProductsPlaceholder />
+                  <ProductsList />
                 </ProtectedRoute>
-              } 
+              }
             />
-            
-            <Route 
-              path="/analytics" 
+
+            <Route
+              path="/analytics"
               element={
                 <ProtectedRoute>
-                  <AnalyticsPlaceholder />
+                  <Analytics />
                 </ProtectedRoute>
-              } 
+              }
             />
           </Routes>
         </div>
       </AuthProvider>
     </Router>
-  )
-}
-
-// Temporary placeholder components (will be replaced in next steps)
-function DashboardPlaceholder() {
-  return (
-    <Layout>
-      <div className="flex items-center justify-center min-h-96">
-        <div className="card max-w-md text-center">
-          <h1 className="text-3xl font-bold text-primary-600 mb-4">
-            Dashboard
-          </h1>
-          <p className="text-gray-600 mb-4">
-            Será implementado na Etapa 4
-          </p>
-          <div className="space-y-2 text-sm text-left bg-gray-50 p-4 rounded">
-            <p className="text-green-600">✅ Etapa 1: Setup</p>
-            <p className="text-green-600">✅ Etapa 2: Axios e Auth</p>
-            <p className="text-green-600">✅ Etapa 3: Login e Registro</p>
-            <p className="text-blue-600">⏳ Etapa 4: Dashboard (próxima)</p>
-          </div>
-        </div>
-      </div>
-    </Layout>
-  )
-}
-
-function ReceiptsPlaceholder() {
-  return (
-    <Layout>
-      <div className="flex items-center justify-center min-h-96">
-        <div className="card max-w-md text-center">
-          <h1 className="text-3xl font-bold text-primary-600 mb-4">
-            Cupons Fiscais
-          </h1>
-          <p className="text-gray-600">
-            Será implementado nas Etapas 5 e 6
-          </p>
-        </div>
-      </div>
-    </Layout>
-  )
-}
-
-function ProductsPlaceholder() {
-  return (
-    <Layout>
-      <div className="flex items-center justify-center min-h-96">
-        <div className="card max-w-md text-center">
-          <h1 className="text-3xl font-bold text-primary-600 mb-4">
-            Produtos
-          </h1>
-          <p className="text-gray-600">
-            Será implementado na Etapa 7
-          </p>
-        </div>
-      </div>
-    </Layout>
-  )
-}
-
-function AnalyticsPlaceholder() {
-  return (
-    <Layout>
-      <div className="flex items-center justify-center min-h-96">
-        <div className="card max-w-md text-center">
-          <h1 className="text-3xl font-bold text-primary-600 mb-4">
-            Análises
-          </h1>
-          <p className="text-gray-600">
-            Será implementado na Etapa 8
-          </p>
-        </div>
-      </div>
-    </Layout>
   )
 }
 
