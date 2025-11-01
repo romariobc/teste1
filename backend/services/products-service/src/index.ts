@@ -1,6 +1,8 @@
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import productRoutes from './routes/productRoutes';
+import pool from './utils/database';
 
 // Load environment variables
 dotenv.config();
@@ -14,25 +16,35 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Health check
-app.get('/health', (req: Request, res: Response) => {
-  res.status(200).json({
-    status: 'OK',
-    service: 'Products Service',
-    timestamp: new Date().toISOString(),
-  });
+app.get('/health', async (req: Request, res: Response) => {
+  try {
+    // Check database connection
+    await pool.query('SELECT 1');
+
+    res.status(200).json({
+      status: 'OK',
+      service: 'Products Service',
+      database: 'Connected',
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: 'ERROR',
+      service: 'Products Service',
+      database: 'Disconnected',
+      timestamp: new Date().toISOString(),
+    });
+  }
 });
 
-// Placeholder routes (will be implemented in Phase 4)
-app.get('/', (req: Request, res: Response) => {
-  res.json({
-    service: 'Products Service',
-    version: '1.0.0',
-    endpoints: {
-      health: '/health',
-      list: 'GET / (coming in Phase 4)',
-      details: 'GET /:id (coming in Phase 4)',
-      priceHistory: 'GET /:id/history (coming in Phase 4)',
-    },
+// Routes
+app.use('/', productRoutes);
+
+// 404 handler
+app.use((req: Request, res: Response) => {
+  res.status(404).json({
+    error: 'Not Found',
+    message: `Route ${req.method} ${req.path} not found`,
   });
 });
 
@@ -49,6 +61,14 @@ app.use((err: Error, req: Request, res: Response, next: Function) => {
 app.listen(PORT, () => {
   console.log(`📦 Products Service running on port ${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV}`);
+  console.log(`🗄️  Database: ${process.env.DATABASE_URL ? 'Configured' : 'Not configured'}`);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  console.log('SIGTERM signal received: closing HTTP server');
+  await pool.end();
+  process.exit(0);
 });
 
 export default app;
