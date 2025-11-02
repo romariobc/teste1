@@ -144,6 +144,21 @@ services:
       - /app/node_modules
     command: npm run dev
 
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: receipt-manager-frontend
+    ports:
+      - "80:80"
+    environment:
+      - VITE_API_URL=http://localhost:3000
+    depends_on:
+      - api-gateway
+    networks:
+      - receipt-network
+
 volumes:
   postgres_data:
     name: receipt-manager-postgres-data
