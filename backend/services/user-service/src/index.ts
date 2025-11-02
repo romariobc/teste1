@@ -3,7 +3,9 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
+import passwordResetRoutes from './routes/passwordResetRoutes';
 import pool from './utils/database';
+import { testEmailConfiguration } from './services/email.service';
 
 // Load environment variables
 dotenv.config();
@@ -49,6 +51,9 @@ app.get('/', (req: Request, res: Response) => {
       login: 'POST /login',
       profile: 'GET /profile (requires authentication)',
       updateProfile: 'PUT /profile (requires authentication)',
+      forgotPassword: 'POST /forgot-password',
+      validateResetToken: 'GET /reset-password/:token',
+      resetPassword: 'POST /reset-password',
     },
   });
 });
@@ -56,6 +61,7 @@ app.get('/', (req: Request, res: Response) => {
 // Routes
 app.use('/', authRoutes);
 app.use('/', userRoutes);
+app.use('/', passwordResetRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
@@ -75,10 +81,13 @@ app.use((err: Error, req: Request, res: Response, next: Function) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`🔐 User Service running on port ${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV}`);
   console.log(`🗄️  Database: ${process.env.DATABASE_URL ? 'Configured' : 'Not configured'}`);
+
+  // Test email configuration
+  await testEmailConfiguration();
 });
 
 // Graceful shutdown
