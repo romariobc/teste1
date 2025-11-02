@@ -1,5 +1,5 @@
 import api from './api';
-import { Product, PriceHistoryItem, PriceComparison, PriceStats } from '../types/product.types';
+import { Product, PriceHistoryItem, PriceComparison } from '../types/product.types';
 
 export const productService = {
   /**
