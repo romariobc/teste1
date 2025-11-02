@@ -43,6 +43,11 @@ const proxyRequest = async (req: Request, res: Response, serviceUrl: string) => 
 router.post('/auth/register', (req, res) => proxyRequest(req, res, USER_SERVICE_URL));
 router.post('/auth/login', (req, res) => proxyRequest(req, res, USER_SERVICE_URL));
 
+// Password reset routes (User Service) - Public
+router.post('/auth/forgot-password', (req, res) => proxyRequest(req, res, USER_SERVICE_URL));
+router.get('/auth/reset-password/:token', (req, res) => proxyRequest(req, res, USER_SERVICE_URL));
+router.post('/auth/reset-password', (req, res) => proxyRequest(req, res, USER_SERVICE_URL));
+
 // User routes (User Service) - Protected
 router.use('/users', authMiddleware);
 router.all('/users*', (req, res) => proxyRequest(req, res, USER_SERVICE_URL));
