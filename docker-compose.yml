@@ -100,6 +100,7 @@ services:
       - NODE_ENV=development
       - PORT=3001
       - DATABASE_URL=postgresql://admin:admin123@postgres:5432/receipt_manager
+      - JWT_SECRET=receipt-manager-secret-key-change-in-production
       - PRODUCTS_SERVICE_URL=http://products-service:3002
     depends_on:
       postgres:
@@ -123,6 +124,7 @@ services:
       - NODE_ENV=development
       - PORT=3002
       - DATABASE_URL=postgresql://admin:admin123@postgres:5432/receipt_manager
+      - JWT_SECRET=receipt-manager-secret-key-change-in-production
     depends_on:
       postgres:
         condition: service_healthy
@@ -145,6 +147,7 @@ services:
       - NODE_ENV=development
       - PORT=3003
       - DATABASE_URL=postgresql://admin:admin123@postgres:5432/receipt_manager
+      - JWT_SECRET=receipt-manager-secret-key-change-in-production
     depends_on:
       postgres:
         condition: service_healthy
