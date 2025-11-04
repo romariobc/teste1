@@ -123,18 +123,45 @@ mkdir -p database/migrations
 
 Ver arquivo `docker-compose.yml` na raiz do projeto.
 
-### 5. Subir ambiente de desenvolvimento
+### 5. Subir ambiente de desenvolvimento com Docker
 
 ```bash
-# Subir PostgreSQL
+# Subir TODOS os serviços (recomendado)
+docker-compose up -d
+
+# Ou subir serviços individuais
 docker-compose up -d postgres
+docker-compose up -d user-service
+docker-compose up -d api-gateway
 
-# Aguardar DB estar pronto
-docker-compose logs -f postgres
+# Ver logs em tempo real
+docker-compose logs -f
 
-# Rodar migrations
-# (após criar migrations na Fase 1)
+# Ver status dos containers
+docker-compose ps
 ```
+
+### 6. Executar migrações do banco
+
+**Se é a primeira vez** (banco novo):
+- As migrações rodam automaticamente! ✅
+
+**Se o banco já existe** (nova migração):
+```bash
+# Executar TODAS as migrações
+./database/run-all-migrations.sh
+
+# Ou executar migração específica
+./database/run-migration.sh 003
+```
+
+Ver mais em [database/README.md](./database/README.md)
+
+### 7. Acessar a aplicação
+
+- Frontend: http://localhost:5173
+- API Gateway: http://localhost:3000
+- User Service: http://localhost:3004
 
 ---
 
@@ -246,6 +273,9 @@ npm run dev
 #### Auth
 - `POST /api/auth/register` - Criar conta
 - `POST /api/auth/login` - Login
+- `POST /api/auth/forgot-password` - Solicitar recuperação de senha
+- `GET /api/auth/reset-password/:token` - Validar token de recuperação
+- `POST /api/auth/reset-password` - Redefinir senha com token
 
 #### Receipts
 - `POST /api/receipts/upload` - Processar cupom
@@ -277,12 +307,20 @@ Password: admin123
 
 ### Tabelas Principais
 - `users` - Usuários do sistema
+- `password_reset_tokens` - Tokens para recuperação de senha
 - `receipts` - Cupons fiscais
 - `receipt_items` - Itens dos cupons
 - `products` - Catálogo de produtos
 - `price_history` - Histórico de preços
 
 Ver schema completo em [ARQUITETURA.md](./ARQUITETURA.md)
+
+### Migrações
+- `001_create_tables.sql` - Cria tabelas principais
+- `002_create_indexes.sql` - Cria índices
+- `003_create_password_reset_tokens.sql` - Tabela de tokens de recuperação
+
+Ver [database/README.md](./database/README.md) para instruções de execução.
 
 ---
 
@@ -307,7 +345,19 @@ NODE_ENV=development
 PORT=3004
 DATABASE_URL=postgresql://admin:admin123@localhost:5432/receipt_manager
 JWT_SECRET=your-secret-key-change-in-production
+
+# Email (opcional - para recuperação de senha)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=seu-email@gmail.com
+SMTP_PASS=sua-app-password
+EMAIL_FROM=noreply@receiptmanager.com
+EMAIL_FROM_NAME=Receipt Manager
+FRONTEND_URL=http://localhost:5173
 ```
+
+**Nota**: Se as variáveis SMTP estiverem vazias, os emails serão logados no console em modo desenvolvimento.
 
 ### Frontend
 ```env

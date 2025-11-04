@@ -38,4 +38,35 @@ export const authService = {
     const response = await api.put<User>('/api/users/profile', data);
     return response.data;
   },
+
+  /**
+   * Request password reset
+   */
+  async forgotPassword(email: string): Promise<void> {
+    await api.post('/api/auth/forgot-password', { email });
+  },
+
+  /**
+   * Validate password reset token
+   */
+  async validateResetToken(token: string): Promise<boolean> {
+    try {
+      const response = await api.get(`/api/auth/reset-password/${token}`);
+      return response.data.valid === true;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Token inválido ou expirado');
+    }
+  },
+
+  /**
+   * Reset password with token
+   */
+  async resetPassword(token: string, password: string, confirmPassword: string): Promise<void> {
+    const response = await api.post('/api/auth/reset-password', {
+      token,
+      password,
+      confirmPassword,
+    });
+    return response.data;
+  },
 };

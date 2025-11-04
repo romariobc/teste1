@@ -67,6 +67,17 @@ services:
       - PORT=3004
       - DATABASE_URL=postgresql://admin:admin123@postgres:5432/receipt_manager
       - JWT_SECRET=receipt-manager-secret-key-change-in-production
+      - JWT_EXPIRES_IN=7d
+      - BCRYPT_ROUNDS=10
+      # Email/SMTP Configuration (optional - leave empty for console logging in dev)
+      - SMTP_HOST=
+      - SMTP_PORT=587
+      - SMTP_SECURE=false
+      - SMTP_USER=
+      - SMTP_PASS=
+      - EMAIL_FROM=noreply@receiptmanager.com
+      - EMAIL_FROM_NAME=Receipt Manager
+      - FRONTEND_URL=http://localhost:5173
     depends_on:
       postgres:
         condition: service_healthy

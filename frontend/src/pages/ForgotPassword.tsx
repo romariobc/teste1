@@ -1,24 +1,26 @@
 import { useState, FormEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
-import { LogIn, Mail, Lock, AlertCircle } from 'lucide-react';
+import { Mail, AlertCircle, CheckCircle, ArrowLeft, KeyRound } from 'lucide-react';
+import { authService } from '../services/auth.service';
 
-export default function Login() {
+export default function ForgotPassword() {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess(false);
     setIsLoading(true);
 
     try {
-      await login({ email, password });
+      await authService.forgotPassword(email);
+      setSuccess(true);
+      setEmail(''); // Clear form
     } catch (err: any) {
-      setError(err.message || 'Erro ao fazer login');
+      setError(err.message || 'Erro ao solicitar recuperação de senha');
     } finally {
       setIsLoading(false);
     }
@@ -30,15 +32,33 @@ export default function Login() {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-100 rounded-full mb-4">
-            <LogIn className="w-8 h-8 text-primary-600" />
+            <KeyRound className="w-8 h-8 text-primary-600" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900">
-            Receipt Manager
+            Esqueceu sua senha?
           </h1>
           <p className="text-gray-600 mt-2">
-            Entre para gerenciar seus cupons fiscais
+            Digite seu email e enviaremos um link para redefinir sua senha
           </p>
         </div>
+
+        {/* Success Message */}
+        {success && (
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-start">
+              <CheckCircle className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-sm text-green-800 font-medium">
+                  Email enviado com sucesso!
+                </p>
+                <p className="text-sm text-green-700 mt-1">
+                  Se o email estiver cadastrado, você receberá um link de recuperação em breve.
+                  Verifique também sua caixa de spam.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Error Message */}
         {error && (
@@ -48,7 +68,7 @@ export default function Login() {
           </div>
         )}
 
-        {/* Login Form */}
+        {/* Forgot Password Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Email Field */}
           <div>
@@ -69,36 +89,6 @@ export default function Login() {
             />
           </div>
 
-          {/* Password Field */}
-          <div>
-            <label htmlFor="password" className="label">
-              <Lock className="w-4 h-4 inline mr-2" />
-              Senha
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="input"
-              placeholder="••••••••"
-              required
-              autoComplete="current-password"
-              disabled={isLoading}
-              minLength={6}
-            />
-          </div>
-
-          {/* Forgot Password Link */}
-          <div className="text-right -mt-2">
-            <Link
-              to="/forgot-password"
-              className="text-sm text-primary-600 hover:text-primary-700 font-medium"
-            >
-              Esqueceu sua senha?
-            </Link>
-          </div>
-
           {/* Submit Button */}
           <button
             type="submit"
@@ -108,38 +98,33 @@ export default function Login() {
             {isLoading ? (
               <>
                 <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Entrando...
+                Enviando...
               </>
             ) : (
               <>
-                <LogIn className="w-4 h-4 inline mr-2" />
-                Entrar
+                <Mail className="w-4 h-4 inline mr-2" />
+                Enviar Link de Recuperação
               </>
             )}
           </button>
         </form>
 
-        {/* Register Link */}
+        {/* Back to Login Link */}
         <div className="mt-6 text-center">
-          <p className="text-sm text-gray-600">
-            Não tem uma conta?{' '}
-            <Link
-              to="/register"
-              className="text-primary-600 hover:text-primary-700 font-medium"
-            >
-              Criar conta
-            </Link>
-          </p>
+          <Link
+            to="/login"
+            className="inline-flex items-center text-sm text-primary-600 hover:text-primary-700 font-medium"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Voltar para o login
+          </Link>
         </div>
 
-        {/* Demo Credentials (for testing) */}
+        {/* Security Note */}
         <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-          <p className="text-xs text-gray-500 text-center mb-2">
-            Para testar:
-          </p>
           <p className="text-xs text-gray-600 text-center">
-            Email: teste@example.com<br />
-            Senha: senha123
+            Por segurança, você receberá um email apenas se o endereço estiver cadastrado em nosso sistema.
+            O link de recuperação expira em 1 hora.
           </p>
         </div>
       </div>

@@ -13,14 +13,21 @@ const ANALYTICS_SERVICE_URL = process.env.ANALYTICS_SERVICE_URL || 'http://local
 // Helper function to proxy requests
 const proxyRequest = async (req: Request, res: Response, serviceUrl: string) => {
   try {
+    // Build headers, explicitly including authorization
+    const headers: Record<string, string> = {
+      'content-type': req.headers['content-type'] || 'application/json',
+    };
+
+    // Forward authorization header if present
+    if (req.headers.authorization) {
+      headers.authorization = req.headers.authorization;
+    }
+
     const response = await axios({
       method: req.method,
       url: `${serviceUrl}${req.path.replace('/api', '')}`,
       data: req.body,
-      headers: {
-        ...req.headers,
-        host: new URL(serviceUrl).host,
-      },
+      headers,
       params: req.query,
     });
 
@@ -42,6 +49,11 @@ const proxyRequest = async (req: Request, res: Response, serviceUrl: string) => 
 // Auth routes (User Service) - Public
 router.post('/auth/register', (req, res) => proxyRequest(req, res, USER_SERVICE_URL));
 router.post('/auth/login', (req, res) => proxyRequest(req, res, USER_SERVICE_URL));
+
+// Password reset routes (User Service) - Public
+router.post('/auth/forgot-password', (req, res) => proxyRequest(req, res, USER_SERVICE_URL));
+router.get('/auth/reset-password/:token', (req, res) => proxyRequest(req, res, USER_SERVICE_URL));
+router.post('/auth/reset-password', (req, res) => proxyRequest(req, res, USER_SERVICE_URL));
 
 // User routes (User Service) - Protected
 router.use('/users', authMiddleware);

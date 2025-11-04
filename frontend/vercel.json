@@ -1,12 +1,37 @@
 {
+<<<<<<< HEAD
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "installCommand": "npm install",
   "framework": "vite",
+=======
+>>>>>>> e53de0433a1be7082f0699526870d0d044b77349
   "rewrites": [
     {
       "source": "/(.*)",
       "destination": "/index.html"
     }
+<<<<<<< HEAD
+=======
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    }
+>>>>>>> e53de0433a1be7082f0699526870d0d044b77349
   ]
 }
